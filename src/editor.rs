@@ -42,7 +42,8 @@ impl Editor {
     }
 
     fn draw_rows(&self) {
-        for _ in 0..self.terminal.size().height {
+        // 最後の行にチルダが表示されるように -1
+        for _ in 0..self.terminal.size().height - 1 {
             println!("~\r");
         }
     }
