@@ -29,7 +29,6 @@ impl Editor {
     }
 
     fn refresh_screen(&self) -> Result<(), std::io::Error> {
-        println!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
         Terminal::clear_screen();
         Terminal::cursor_position(0, 0);
         if self.should_quit {

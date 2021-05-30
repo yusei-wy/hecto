@@ -1,8 +1,7 @@
 use std::io::{self, stdout, Write};
 use termion::event::Key;
 use termion::input::TermRead;
-use termion::raw::IntoRawMode;
-use termion::{self, raw::RawTerminal};
+use termion::raw::{IntoRawMode, RawTerminal};
 
 pub struct Terminal {
     size: Size,
@@ -37,7 +36,7 @@ impl Terminal {
     pub fn cursor_position(x: u16, y: u16) {
         let x = x.saturating_add(1);
         let y = y.saturating_add(1);
-        println!("{}", termion::cursor::Goto(x, y));
+        print!("{}", termion::cursor::Goto(x, y));
     }
 
     pub fn flush() -> Result<(), std::io::Error> {
