@@ -39,6 +39,14 @@ impl Terminal {
         print!("{}", termion::cursor::Goto(x, y));
     }
 
+    pub fn cursor_hide() {
+        print!("{}", termion::cursor::Hide);
+    }
+
+    pub fn cursor_show() {
+        print!("{}", termion::cursor::Show);
+    }
+
     pub fn flush() -> Result<(), std::io::Error> {
         io::stdout().flush()
     }
