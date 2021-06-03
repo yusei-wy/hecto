@@ -7,6 +7,8 @@ pub struct Editor {
     should_quit: bool,
     terminal: Terminal,
     cursor_position: Position,
+    width: usize,
+    height: usize,
 }
 
 pub struct Position {
@@ -16,10 +18,16 @@ pub struct Position {
 
 impl Editor {
     pub fn default() -> Self {
+        let terminal = Terminal::default().expect("Faild to initialized terminal");
+        let size = terminal.size();
+        let width = size.width.saturating_sub(1) as usize;
+        let height = size.height.saturating_sub(1) as usize;
         Self {
             should_quit: false,
-            terminal: Terminal::default().expect("Faild to initialized terminal"),
+            terminal,
             cursor_position: Position { x: 0, y: 0 },
+            width,
+            height,
         }
     }
 
@@ -89,9 +97,17 @@ impl Editor {
         let Position { mut x, mut y } = self.cursor_position;
         match key {
             Key::Up => y = y.saturating_sub(1),
-            Key::Down => y = y.saturating_add(1),
+            Key::Down => {
+                if y < self.height {
+                    y = y.saturating_add(1);
+                }
+            }
             Key::Left => x = x.saturating_sub(1),
-            Key::Right => x = x.saturating_add(1),
+            Key::Right => {
+                if x < self.width {
+                    x = x.saturating_add(1);
+                }
+            }
             _ => (),
         }
         self.cursor_position = Position { x, y };
