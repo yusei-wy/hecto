@@ -1,6 +1,8 @@
 #![warn(clippy::all, clippy::pedantic)]
 
+mod document;
 mod editor;
+mod row;
 mod terminal;
 
 use crate::editor::Editor;

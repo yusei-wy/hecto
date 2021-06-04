@@ -1,3 +1,5 @@
+use crate::document::Document;
+use crate::row::Row;
 use crate::terminal::Terminal;
 use termion::event::Key;
 
@@ -9,8 +11,10 @@ pub struct Editor {
     cursor_position: Position,
     width: usize,
     height: usize,
+    document: Document,
 }
 
+#[derive(Default)]
 pub struct Position {
     pub x: usize,
     pub y: usize,
@@ -25,9 +29,10 @@ impl Editor {
         Self {
             should_quit: false,
             terminal,
-            cursor_position: Position { x: 0, y: 0 },
+            cursor_position: Position::default(),
             width,
             height,
+            document: Document::open(),
         }
     }
 
@@ -47,7 +52,7 @@ impl Editor {
 
     fn refresh_screen(&self) -> Result<(), std::io::Error> {
         Terminal::cursor_hide();
-        Terminal::cursor_position(&Position { x: 0, y: 0 });
+        Terminal::cursor_position(&Position::default());
         if self.should_quit {
             Terminal::clear_screen();
             println!("Goobye.\r");
@@ -62,14 +67,23 @@ impl Editor {
     fn draw_rows(&self) {
         let height = self.terminal.size().height;
         // 最後の行にチルダが表示されるように -1
-        for row in 0..height - 1 {
+        for terminal_row in 0..height - 1 {
             Terminal::clear_current_line();
-            if row == height / 3 {
+            if let Some(row) = self.document.row(terminal_row as usize) {
+                self.draw_row(row);
+            } else if terminal_row == height / 3 {
                 self.draw_welcome_message();
             } else {
                 println!("~\r");
             }
         }
+    }
+
+    fn draw_row(&self, row: &Row) {
+        let start = 0;
+        let end = self.width as usize;
+        let row = row.render(start, end);
+        println!("{}\r", row);
     }
 
     fn draw_welcome_message(&self) {
