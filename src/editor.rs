@@ -1,6 +1,7 @@
 use crate::document::Document;
 use crate::row::Row;
 use crate::terminal::Terminal;
+use std::env;
 use termion::event::Key;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -22,6 +23,14 @@ pub struct Position {
 
 impl Editor {
     pub fn default() -> Self {
+        let args: Vec<String> = env::args().collect();
+        let document = if args.len() > 1 {
+            let filename = &args[1];
+            Document::open(filename).unwrap_or_default()
+        } else {
+            Document::default()
+        };
+
         let terminal = Terminal::default().expect("Faild to initialized terminal");
         let size = terminal.size();
         let width = size.width.saturating_sub(1) as usize;
@@ -32,7 +41,7 @@ impl Editor {
             cursor_position: Position::default(),
             width,
             height,
-            document: Document::open(),
+            document,
         }
     }
 
