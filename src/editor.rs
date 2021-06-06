@@ -10,6 +10,7 @@ pub struct Editor {
     should_quit: bool,
     terminal: Terminal,
     cursor_position: Position,
+    offset: Position,
     width: usize,
     height: usize,
     document: Document,
@@ -39,6 +40,7 @@ impl Editor {
             should_quit: false,
             terminal,
             cursor_position: Position::default(),
+            offset: Position::default(),
             width,
             height,
             document,
@@ -67,7 +69,10 @@ impl Editor {
             println!("Goobye.\r");
         } else {
             self.draw_rows();
-            Terminal::cursor_position(&self.cursor_position);
+            Terminal::cursor_position(&Position {
+                x: self.cursor_position.x.saturating_sub(self.offset.x),
+                y: self.cursor_position.y.saturating_sub(self.offset.y),
+            });
         }
         Terminal::cursor_show();
         Terminal::flush()
@@ -78,7 +83,7 @@ impl Editor {
         // 最後の行にチルダが表示されるように -1
         for terminal_row in 0..height - 1 {
             Terminal::clear_current_line();
-            if let Some(row) = self.document.row(terminal_row as usize) {
+            if let Some(row) = self.document.row(terminal_row as usize + self.offset.y) {
                 self.draw_row(row);
             } else if self.document.is_empty() && terminal_row == height / 3 {
                 self.draw_welcome_message();
@@ -89,8 +94,8 @@ impl Editor {
     }
 
     fn draw_row(&self, row: &Row) {
-        let start = 0;
-        let end = self.width as usize;
+        let start = self.offset.x;
+        let end = self.offset.x + self.width;
         let row = row.render(start, end);
         println!("{}\r", row);
     }
@@ -120,31 +125,55 @@ impl Editor {
             | Key::End => self.move_cursor(pressed_key),
             _ => (),
         }
+        self.scroll();
         Ok(())
     }
 
     fn move_cursor(&mut self, key: Key) {
         let Position { mut x, mut y } = self.cursor_position;
+        let height = self.document.len();
+        let width = if let Some(row) = self.document.row(y) {
+            row.len()
+        } else {
+            0
+        };
         match key {
             Key::Up => y = y.saturating_sub(1),
             Key::Down => {
-                if y < self.height {
+                if y < height {
                     y = y.saturating_add(1);
                 }
             }
             Key::Left => x = x.saturating_sub(1),
             Key::Right => {
-                if x < self.width {
+                if x < width {
                     x = x.saturating_add(1);
                 }
             }
             Key::PageUp => y = 0,
-            Key::PageDown => y = self.height,
+            Key::PageDown => y = height,
             Key::Home => x = 0,
-            Key::End => x = self.width,
+            Key::End => x = width,
             _ => (),
         }
         self.cursor_position = Position { x, y };
+    }
+
+    fn scroll(&mut self) {
+        let Position { x, y } = self.cursor_position;
+        let mut offset = &mut self.offset;
+
+        if y < offset.y {
+            offset.y = y;
+        } else if y >= offset.y.saturating_add(self.height) {
+            offset.y = y.saturating_sub(self.height).saturating_sub(1);
+        }
+
+        if x < offset.x {
+            offset.x = x;
+        } else if x >= offset.x.saturating_add(self.width) {
+            offset.x = x.saturating_sub(self.width).saturating_sub(1);
+        }
     }
 }
 
