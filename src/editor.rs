@@ -162,17 +162,15 @@ impl Editor {
     fn scroll(&mut self) {
         let Position { x, y } = self.cursor_position;
         let mut offset = &mut self.offset;
-
         if y < offset.y {
             offset.y = y;
         } else if y >= offset.y.saturating_add(self.height) {
-            offset.y = y.saturating_sub(self.height).saturating_sub(1);
+            offset.y = y.saturating_sub(self.height).saturating_add(1);
         }
-
         if x < offset.x {
             offset.x = x;
         } else if x >= offset.x.saturating_add(self.width) {
-            offset.x = x.saturating_sub(self.width).saturating_sub(1);
+            offset.x = x.saturating_sub(self.width).saturating_add(1);
         }
     }
 }
