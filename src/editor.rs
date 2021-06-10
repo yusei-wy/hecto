@@ -11,8 +11,8 @@ pub struct Editor {
     terminal: Terminal,
     cursor_position: Position,
     offset: Position,
-    width: usize,
-    height: usize,
+    terminal_width: usize,
+    terminal_height: usize,
     document: Document,
 }
 
@@ -41,8 +41,8 @@ impl Editor {
             terminal,
             cursor_position: Position::default(),
             offset: Position::default(),
-            width,
-            height,
+            terminal_width: width,
+            terminal_height: height,
             document,
         }
     }
@@ -95,7 +95,7 @@ impl Editor {
 
     fn draw_row(&self, row: &Row) {
         let start = self.offset.x;
-        let end = self.offset.x + self.width;
+        let end = self.offset.x + self.terminal_width;
         let row = row.render(start, end);
         println!("{}\r", row);
     }
@@ -150,8 +150,20 @@ impl Editor {
                     x = x.saturating_add(1);
                 }
             }
-            Key::PageUp => y = 0,
-            Key::PageDown => y = height,
+            Key::PageUp => {
+                y = if y > self.terminal_height {
+                    y - self.terminal_height
+                } else {
+                    0
+                }
+            }
+            Key::PageDown => {
+                y = if y.saturating_add(self.terminal_height) < height {
+                    y + self.terminal_height
+                } else {
+                    height
+                }
+            }
             Key::Home => x = 0,
             Key::End => x = width,
             _ => (),
@@ -174,13 +186,13 @@ impl Editor {
         let mut offset = &mut self.offset;
         if y < offset.y {
             offset.y = y;
-        } else if y >= offset.y.saturating_add(self.height) {
-            offset.y = y.saturating_sub(self.height).saturating_add(1);
+        } else if y >= offset.y.saturating_add(self.terminal_height) {
+            offset.y = y.saturating_sub(self.terminal_height).saturating_add(1);
         }
         if x < offset.x {
             offset.x = x;
-        } else if x >= offset.x.saturating_add(self.width) {
-            offset.x = x.saturating_sub(self.width).saturating_add(1);
+        } else if x >= offset.x.saturating_add(self.terminal_width) {
+            offset.x = x.saturating_sub(self.terminal_width).saturating_add(1);
         }
     }
 }
