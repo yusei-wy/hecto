@@ -3,6 +3,7 @@ use unicode_segmentation::UnicodeSegmentation;
 
 pub struct Row {
     string: String,
+    len: usize,
 }
 
 impl Row {
@@ -12,7 +13,7 @@ impl Row {
         let mut result = String::new();
         for grapheme in self.string[..]
             .graphemes(true)
-            .skip(start)
+            .skip(start) // 横スクロール時に offset を skip
             .take(end - start)
         {
             result.push_str(grapheme);
@@ -25,14 +26,21 @@ impl Row {
     }
 
     pub fn len(&self) -> usize {
-        self.string[..].graphemes(true).count()
+        self.len
+    }
+
+    pub fn update_len(&mut self) {
+        self.len = self.string[..].graphemes(true).count();
     }
 }
 
 impl From<&str> for Row {
     fn from(slice: &str) -> Self {
-        Self {
+        let mut row = Self {
             string: String::from(slice),
-        }
+            len: 0,
+        };
+        row.update_len();
+        row
     }
 }
