@@ -16,7 +16,12 @@ impl Row {
             .skip(start) // 横スクロール時に offset を skip
             .take(end - start)
         {
-            result.push_str(grapheme);
+            // hecto ではとりあえずタブをスペースとして表示
+            if grapheme == "\t" {
+                result.push_str(" ");
+            } else {
+                result.push_str(grapheme);
+            }
         }
         result
     }
