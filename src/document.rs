@@ -49,7 +49,8 @@ impl Document {
         if at.y >= len {
             return;
         }
-        if at.x == self.rows.get_mut(at.y).unwrap().len() && at.y < len - 1 {
+        let should_remove_row = at.x == self.rows.get_mut(at.y).unwrap().len() && at.y < len - 1;
+        if should_remove_row {
             let next_row = self.rows.remove(at.y + 1);
             let row = self.rows.get_mut(at.y).unwrap();
             row.append(&next_row);
