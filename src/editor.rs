@@ -9,6 +9,7 @@ use termion::event::Key;
 const STATUS_FG_COLOR: color::Rgb = color::Rgb(63, 63, 63);
 const STATUS_BG_COLOR: color::Rgb = color::Rgb(239, 239, 239);
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+const HELP_MESSAGE: &str = "HELP: Ctrl-S = save | Ctrl-Q = quit";
 
 pub struct Editor {
     should_quit: bool,
@@ -42,7 +43,7 @@ impl StatusMessage {
 impl Editor {
     pub fn default() -> Self {
         let args: Vec<String> = env::args().collect();
-        let mut initial_status = String::from("HELP: Ctrl-Q = quit");
+        let mut initial_status = String::from(HELP_MESSAGE);
         let document = if args.len() > 1 {
             let filename = &args[1];
             let doc = Document::open(filename);
@@ -173,6 +174,14 @@ impl Editor {
         let pressed_key = Terminal::read_key()?;
         match pressed_key {
             Key::Ctrl('q') => self.should_quit = true,
+            Key::Ctrl('s') => {
+                if self.document.save().is_ok() {
+                    self.status_message =
+                        StatusMessage::from("File save successfully.".to_string());
+                } else {
+                    self.status_message = StatusMessage::from("Error writing file!".to_string());
+                }
+            }
             Key::Char(c) => {
                 self.document.insert(&self.cursor_position, c);
                 self.move_cursor(Key::Right);
