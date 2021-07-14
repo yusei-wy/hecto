@@ -136,12 +136,24 @@ impl Editor {
     fn draw_status_bar(&self) {
         let mut status;
         let width = self.terminal.size().width as usize;
+
+        let modified_indicator = if self.document.is_dirty() {
+            " (modified)"
+        } else {
+            ""
+        };
+
         let mut filename = "[No Name]".to_string();
         if let Some(name) = &self.document.filename {
             filename = name.clone();
             filename.truncate(20);
         }
-        status = format!("{} - {} lines", filename, self.document.len());
+        status = format!(
+            "{} - {} lines{}",
+            filename,
+            self.document.len(),
+            modified_indicator
+        );
         let line_indicator = format!(
             "{}/{}",
             self.cursor_position.y.saturating_add(1),
