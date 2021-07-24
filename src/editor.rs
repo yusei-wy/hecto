@@ -46,11 +46,10 @@ impl Editor {
     pub fn default() -> Self {
         let args: Vec<String> = env::args().collect();
         let mut initial_status = String::from(HELP_MESSAGE);
-        let document = if args.len() > 1 {
-            let filename = &args[1];
+        let document = if let Some(filename) = args.get(1) {
             let doc = Document::open(filename);
-            if doc.is_ok() {
-                doc.unwrap()
+            if let Ok(doc) = doc {
+                doc
             } else {
                 initial_status = format!("ERR: Could not open file: {}", filename);
                 Document::default()
