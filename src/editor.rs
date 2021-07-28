@@ -9,7 +9,7 @@ use termion::event::Key;
 const STATUS_FG_COLOR: color::Rgb = color::Rgb(63, 63, 63);
 const STATUS_BG_COLOR: color::Rgb = color::Rgb(239, 239, 239);
 const VERSION: &str = env!("CARGO_PKG_VERSION");
-const HELP_MESSAGE: &str = "HELP: Ctrl-S = save | Ctrl-Q = quit";
+const HELP_MESSAGE: &str = "HELP: Ctrl-F = find | Ctrl-S = save | Ctrl-Q = quit";
 const QUIT_TIMES: u8 = 3;
 
 pub struct Editor {
@@ -199,6 +199,15 @@ impl Editor {
                     return Ok(());
                 }
                 self.should_quit = true;
+            }
+            Key::Ctrl('f') => {
+                if let Some(query) = self.prompt("Search: ").unwrap_or(None) {
+                    if let Some(positoin) = self.document.find(&query[..]) {
+                        self.cursor_position = positoin;
+                    } else {
+                        self.status_message = StatusMessage::from(format!("Not found :{}.", query));
+                    }
+                }
             }
             Key::Ctrl('s') => self.save(),
             Key::Char(c) => {
