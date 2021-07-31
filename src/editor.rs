@@ -22,7 +22,7 @@ pub struct Editor {
     quit_times: u8,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Position {
     pub x: usize,
     pub y: usize,
@@ -200,23 +200,7 @@ impl Editor {
                 }
                 self.should_quit = true;
             }
-            Key::Ctrl('f') => {
-                if let Some(query) = self
-                    .prompt("Search: ", |editor, _, query| {
-                        if let Some(position) = editor.document.find(&query) {
-                            editor.cursor_position = position;
-                            editor.scroll();
-                        }
-                    })
-                    .unwrap_or(None)
-                {
-                    if let Some(positoin) = self.document.find(&query[..]) {
-                        self.cursor_position = positoin;
-                    } else {
-                        self.status_message = StatusMessage::from(format!("Not found :{}.", query));
-                    }
-                }
-            }
+            Key::Ctrl('f') => self.search(),
             Key::Ctrl('s') => self.save(),
             Key::Char(c) => {
                 self.document.insert(&self.cursor_position, c);
@@ -378,6 +362,28 @@ impl Editor {
             self.status_message = StatusMessage::from("File saved successfully.".to_string());
         } else {
             self.status_message = StatusMessage::from("Error writing file!".to_string());
+        }
+    }
+
+    fn search(&mut self) {
+        let old_position = self.cursor_position.clone();
+        if let Some(query) = self
+            .prompt("Search: ", |editor, _, query| {
+                if let Some(position) = editor.document.find(&query) {
+                    editor.cursor_position = position;
+                    editor.scroll();
+                }
+            })
+            .unwrap_or(None)
+        {
+            if let Some(positoin) = self.document.find(&query[..]) {
+                self.cursor_position = positoin;
+            } else {
+                self.status_message = StatusMessage::from(format!("Not found :{}.", query));
+            }
+        } else {
+            self.cursor_position = old_position;
+            self.scroll();
         }
     }
 }
