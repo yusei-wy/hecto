@@ -126,6 +126,8 @@ impl Row {
         } else {
             substring.rfind(query)
         };
+        // matching_byte_index は grapheme には対応したものではない
+        // grapheme_indices で byte 単位の index を取得して比較する
         if let Some(matching_byte_index) = matching_byte_index {
             for (grapheme_index, (byte_index, _)) in
                 substring[..].grapheme_indices(true).enumerate()

@@ -12,6 +12,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 const HELP_MESSAGE: &str = "HELP: Ctrl-F = find | Ctrl-S = save | Ctrl-Q = quit";
 const QUIT_TIMES: u8 = 3;
 
+// この struct は小さいので参照ではなくて Copy で OK
 #[derive(PartialEq, Clone, Copy)]
 pub enum SearchDirection {
     Forward,
@@ -386,6 +387,7 @@ impl Editor {
                             moved = true;
                         }
                         Key::Left | Key::Up => direction = SearchDirection::Backward,
+                        // 意図しない方向への検索を防ぐため
                         _ => direction = SearchDirection::Forward,
                     }
                     if let Some(position) =
