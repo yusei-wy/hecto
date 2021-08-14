@@ -196,7 +196,7 @@ impl Row {
                 #[allow(clippy::integer_arithmetic)]
                 highlighting
                     .get(index - 1)
-                    .unwrap_or(&highlighting::Type::Number)
+                    .unwrap_or(&highlighting::Type::None)
             } else {
                 &highlighting::Type::None
             };
