@@ -38,6 +38,7 @@ impl FileType {
 }
 
 impl HighlightingOptions {
+    // 小さな構造体なら & で参照を渡すよりコピーした方が効率的
     pub fn numbers(self) -> bool {
         self.numbers
     }
