@@ -3,7 +3,7 @@ pub struct FileType {
     hl_opts: HighlightingOptions,
 }
 
-#[derive(Default)]
+#[derive(Default, Copy, Clone)]
 pub struct HighlightingOptions {
     pub numbers: bool,
 }
@@ -30,5 +30,9 @@ impl FileType {
 
     pub fn name(&self) -> String {
         self.name.clone()
+    }
+
+    pub fn highlighting_options(&self) -> HighlightingOptions {
+        self.hl_opts
     }
 }
