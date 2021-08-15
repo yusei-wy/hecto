@@ -111,11 +111,12 @@ impl Document {
     pub fn save(&mut self) -> Result<(), Error> {
         if let Some(filename) = &self.filename {
             let mut file = fs::File::create(filename)?;
-            for row in &self.rows {
+            self.file_type = FileType::from(filename);
+            for row in &mut self.rows {
                 file.write_all(row.as_bytes())?;
                 file.write_all(b"\n")?;
+                row.highlight(self.file_type.highlighting_options(), None)
             }
-            self.file_type = FileType::from(filename);
             self.dirty = false;
         }
         Ok(())
