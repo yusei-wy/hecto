@@ -1,4 +1,5 @@
 use crate::editor::{Position, SearchDirection};
+use crate::file_type::FileType;
 use crate::row::Row;
 use std::fs;
 use std::io::{Error, Write};
@@ -8,6 +9,7 @@ pub struct Document {
     rows: Vec<Row>,
     pub filename: Option<String>,
     dirty: bool,
+    file_type: FileType,
 }
 
 impl Document {
@@ -23,7 +25,12 @@ impl Document {
             rows,
             filename: Some(filename.to_string()),
             dirty: false,
+            file_type: FileType::from(filename),
         })
+    }
+
+    pub fn file_type(&self) -> String {
+        self.file_type.name()
     }
 
     pub fn row(&self, index: usize) -> Option<&Row> {
@@ -107,6 +114,7 @@ impl Document {
                 file.write_all(row.as_bytes())?;
                 file.write_all(b"\n")?;
             }
+            self.file_type = FileType::from(filename);
             self.dirty = false;
         }
         Ok(())
