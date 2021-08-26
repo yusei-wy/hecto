@@ -171,7 +171,7 @@ impl Row {
             while let Some(search_match) = self.find(word, index, SearchDirection::Forward) {
                 if let Some(next_index) = search_match.checked_add(word[..].graphemes(true).count())
                 {
-                    for i in index.saturating_add(search_match)..next_index {
+                    for i in search_match..next_index {
                         self.highlighting[i] = highlighting::Type::Match;
                     }
                     index = next_index;
@@ -317,5 +317,49 @@ impl From<&str> for Row {
             highlighting: Vec::new(),
             len: slice.graphemes(true).count(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_highlight_find() {
+        let mut row = Row::from("1testtest");
+        row.highlighting = vec![
+            highlighting::Type::Number,
+            highlighting::Type::None,
+            highlighting::Type::None,
+            highlighting::Type::None,
+            highlighting::Type::None,
+            highlighting::Type::None,
+            highlighting::Type::None,
+            highlighting::Type::None,
+            highlighting::Type::None,
+        ];
+        row.highlight_match(Some("t"));
+        assert_eq!(
+            vec![
+                highlighting::Type::Number,
+                highlighting::Type::Match,
+                highlighting::Type::None,
+                highlighting::Type::None,
+                highlighting::Type::Match,
+                highlighting::Type::Match,
+                highlighting::Type::None,
+                highlighting::Type::None,
+                highlighting::Type::Match,
+            ],
+            row.highlighting,
+        );
+    }
+
+    #[test]
+    fn test_find() {
+        let row = Row::from("1testtest");
+        assert_eq!(row.find("t", 0, SearchDirection::Forward), Some(1));
+        assert_eq!(row.find("t", 2, SearchDirection::Forward), Some(4));
+        assert_eq!(row.find("t", 5, SearchDirection::Forward), Some(5));
     }
 }
