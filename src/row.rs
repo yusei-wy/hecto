@@ -246,7 +246,23 @@ impl Row {
         opts: &HighlightingOptions,
         chars: &[char],
     ) -> bool {
+        if *index > 0 {
+            #[allow(clippy::indexing_slicing, clippy::integer_arithmetic)]
+            let prev_char = chars[*index - 1];
+            if !is_separator(prev_char) {
+                return false;
+            }
+        }
+
         for word in opts.primary_keywords() {
+            if *index < chars.len().saturating_sub(word.len()) {
+                #[allow(clippy::indexing_slicing, clippy::integer_arithmetic)]
+                let next_char = chars[*index + word.len()];
+                if !is_separator(next_char) {
+                    continue;
+                }
+            }
+
             if self.highlight_str(index, word, chars, highlighting::Type::PrimaryKeywords) {
                 return true;
             }
@@ -291,7 +307,7 @@ impl Row {
             if *index > 0 {
                 #[allow(clippy::indexing_slicing, clippy::integer_arithmetic)]
                 let prev_char = chars[*index - 1];
-                if !prev_char.is_ascii_punctuation() && !prev_char.is_ascii_whitespace() {
+                if !is_separator(prev_char) {
                     return false;
                 }
             }
@@ -352,6 +368,10 @@ impl Row {
     }
 }
 
+fn is_separator(c: char) -> bool {
+    c.is_ascii_punctuation() || c.is_ascii_whitespace()
+}
+
 impl From<&str> for Row {
     fn from(slice: &str) -> Self {
         Self {
@@ -403,5 +423,14 @@ mod tests {
         assert_eq!(row.find("t", 0, SearchDirection::Forward), Some(1));
         assert_eq!(row.find("t", 2, SearchDirection::Forward), Some(4));
         assert_eq!(row.find("t", 5, SearchDirection::Forward), Some(5));
+    }
+
+    #[test]
+    fn test_is_separator() {
+        assert!(!is_separator('a'));
+        assert!(!is_separator('A'));
+        assert!(!is_separator('0'));
+        assert!(is_separator(' '));
+        assert!(is_separator('\''));
     }
 }
