@@ -213,6 +213,32 @@ impl Row {
         false
     }
 
+    #[allow(clippy::indexing_slicing, clippy::integer_arithmetic)]
+    fn highlight_multiline_comment(
+        &mut self,
+        index: &mut usize,
+        opts: &HighlightingOptions,
+        c: char,
+        chars: &[char],
+    ) -> bool {
+        if opts.multiline_comments() && c == '/' && *index < chars.len() {
+            if let Some(next_char) = chars.get(index.saturating_add(1)) {
+                if *next_char == '*' {
+                    let closing_index = self.string[*index + 2..]
+                        .find("*/")
+                        .map_or_else(|| chars.len(), |closing_index| *index + closing_index + 4);
+                    for _ in *index..closing_index {
+                        self.highlighting
+                            .push(highlighting::Type::MultilineComments);
+                        *index += 1;
+                    }
+                    return true;
+                }
+            };
+        }
+        false
+    }
+
     pub fn highlight_str(
         &mut self,
         index: &mut usize,
@@ -383,6 +409,7 @@ impl Row {
         while let Some(c) = chars.get(index) {
             if self.highlight_char(&mut index, opts, *c, &chars)
                 || self.highlight_comment(&mut index, opts, *c, &chars)
+                || self.highlight_multiline_comment(&mut index, opts, *c, &chars)
                 || self.highlight_primary_keywords(&mut index, opts, &chars)
                 || self.highlight_secondary_keywords(&mut index, opts, &chars)
                 || self.highlight_string(&mut index, opts, *c, &chars)
