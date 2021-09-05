@@ -443,8 +443,19 @@ impl Row {
             index += 1;
         }
 
+        let len = self.string[..].graphemes(true).count();
         self.highlight_match(word);
-        if in_ml_comment && &self.string[self.string.len().saturating_sub(2)..] != "*/" {
+        let find_close_multi_comment = if len < 2 {
+            false
+        } else {
+            let last: String = self.string[..]
+                .graphemes(true)
+                .skip(len - 2)
+                .take(2)
+                .collect();
+            &last == "*/"
+        };
+        if in_ml_comment && !find_close_multi_comment {
             return true;
         }
         false
