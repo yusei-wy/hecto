@@ -155,15 +155,16 @@ impl Document {
 
     pub fn highlight(&mut self, word: &Option<String>, until: Option<usize>) {
         let mut start_with_comment = false;
-        let until = if let Some(until) = until {
-            if until.saturating_add(1) < self.rows.len() {
-                until.saturating_add(1)
-            } else {
-                self.rows.len()
-            }
-        } else {
-            self.rows.len()
-        };
+        let until = until.map_or_else(
+            || self.rows.len(),
+            |until| {
+                if until.saturating_add(1) < self.rows.len() {
+                    until.saturating_add(1)
+                } else {
+                    self.rows.len()
+                }
+            },
+        );
         #[allow(clippy::indexing_slicing)]
         for row in &mut self.rows[..until] {
             start_with_comment = row.highlight(
